@@ -205,34 +205,29 @@ public class LinkedList {
 	 *        the node that will be removed from this list
 	 */
 	public void remove(Node node) {
-		if (first==null || node==null)
-		{
-			return;
-		}
-		if (first==node) {
-			first=first.next;
-			if (first == null) 
+		Node current = first;
+
+		if(node.equals(current)){
+			first = first.next;
+			if (first == null){
 				last = null;
-			size--;
-			return;
-		}
-		Node prev=first;
-		while (prev.next != null) {
-			if (prev.next == node) {
-				break;
 			}
-			prev = prev.next;
 		}
-		if (prev.next==null)
-		{
-			return;
+		else if(node.equals(last)){
+			while(current.next != last) {
+				current = current.next;
+			}
+			current.next = null;
+			last = current;
 		}
-		prev.next=node.next;
-		if (node==last) {
-			last=prev;
+		else {
+		while(current.next != null && current.next != node) {
+			current = current.next;
 		}
-		size--;
+		current.next = current.next.next;
 	}
+	size --;
+}
 
 	/**
 	 * Removes from this list the node which is located at the given index.
