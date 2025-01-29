@@ -19,7 +19,37 @@ public class MemoryBlock {
 		this.baseAddress = baseAddress;
 		this.length = length;
 	}
+	/** 
+	 * Returns the base address of this memory block
+	 * @return the base address
+	 */
+	public int getBaseAddress() {
+		return baseAddress;
+	}
 
+	/** 
+	 * Returns the length of this memory block
+	 * @return the length of the block in words
+	 */
+	public int getLength() {
+		return length;
+	}
+
+	/** 
+	 * Sets a new base address for this memory block
+	 * @param baseAddress the new base address
+	 */
+	public void setBaseAddress(int baseAddress) {
+		this.baseAddress = baseAddress;
+	}
+
+	/** 
+	 * Sets a new length for this memory block
+	 * @param length the new length
+	 */
+	public void setLength(int length) {
+		this.length = length;
+	}
 	/**
 	 * Checks if this block has the same base address and length as the given block
 	 * 
