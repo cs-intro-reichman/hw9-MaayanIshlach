@@ -59,22 +59,30 @@ public class MemorySpace {
 	 */
 	public int malloc(int length) {		
 		Node current = freeList.getFirst();
-		while(current != null && current.block.length < length) {
+		
+		while (current != null) {
+			MemoryBlock block = current.block;
+	
+			if (block.getLength() >= length) { 
+				int baseAddress = block.getBaseAddress(); 
+	
+				MemoryBlock allocatedBlock = new MemoryBlock(baseAddress, length);
+				allocatedList.addLast(allocatedBlock); 
+	
+				if (block.getLength() == length) {
+					freeList.remove(current);
+				} else {
+					block.setBaseAddress(block.getBaseAddress() + length);
+					block.setLength(block.getLength() - length);
+				}
+	
+				return baseAddress; 
+			}
+	
 			current = current.next;
 		}
-		if(current == null){
-			return -1;
-		}
-		MemoryBlock newBlock = new MemoryBlock(current.block.baseAddress, length);
-		if(current.block.length == length) {
-			freeList.remove(current);
-		}
-		else {
-			current.block.baseAddress += length;
-			current.block.length -= length;
-		}
-		allocatedList.addLast(newBlock);
-		return newBlock.baseAddress;
+	
+		return -1; 
 	}
 
 
@@ -87,19 +95,19 @@ public class MemorySpace {
 	 *            the starting address of the block to freeList
 	 */
 	public void free(int address) {
+		if (allocatedList.getSize() == 0) {
+			return;
+		}
+	
 		Node current = allocatedList.getFirst();
-		if(allocatedList.getSize() == 0){
-				throw new IllegalArgumentException(
-						"index must be between 0 and size");
+		
+		while (current != null) {
+			if (current.block.getBaseAddress() == address) {
+				allocatedList.remove(current);
+				freeList.addLast(current.block);
+				return;
 			}
-		else{
-			while(current.block.baseAddress != address && current != allocatedList.getLast()) {
-				current = current.next;
-			}
-			if (current.block.baseAddress == address) {
-				allocatedList.remove(current.block);
-			freeList.addLast(current.block);
-			}
+			current = current.next;
 		}
 	}
 	
@@ -117,21 +125,19 @@ public class MemorySpace {
 	 * In this implementation Malloc does not call defrag.
 	 */
 	public void defrag() {
-		for (int i = 0; i < freeList.getSize(); i++) {
-			MemoryBlock currentBlock = freeList.getBlock(i);
-			int endAddress = currentBlock.baseAddress + currentBlock.length;
+		Node current = freeList.getFirst();
+		
+		while (current != null && current.next != null) {
+			MemoryBlock block1 = current.block;
+			MemoryBlock block2 = current.next.block;
 	
-			Node iterator = freeList.getFirst(); 
-			while (iterator != null) {
-				MemoryBlock nextBlock = iterator.block;
-				if (nextBlock.baseAddress == endAddress) {
-					currentBlock.length += nextBlock.length;
-					freeList.remove(iterator); 
-					defrag();
-					break;
-				}
-				iterator = iterator.next;
+			if (block1.getBaseAddress() + block1.getLength() == block2.getBaseAddress()) {
+				block1.setLength(block1.getLength() + block2.getLength());
+				freeList.remove(current.next);
+				continue;
 			}
+			
+			current = current.next;
 		}
 	}
 }
