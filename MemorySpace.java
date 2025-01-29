@@ -59,32 +59,23 @@ public class MemorySpace {
 	 */
 	public int malloc(int length) {		
 		Node current = freeList.getFirst();
-		
-		while (current != null) {
-			MemoryBlock block = current.block;
-	
-			if (block.getLength() >= length) { 
-				int baseAddress = block.getBaseAddress(); 
-	
-				MemoryBlock allocatedBlock = new MemoryBlock(baseAddress, length);
-				allocatedList.addLast(allocatedBlock); 
-	
-				if (block.getLength() == length) {
-					freeList.remove(current);
-				} else {
-					block.setBaseAddress(block.getBaseAddress() + length);
-					block.setLength(block.getLength() - length);
-				}
-	
-				return baseAddress; 
-			}
-	
+		while(current != null && current.block.length < length) {
 			current = current.next;
 		}
-	
-		return -1; 
+		if(current == null){
+			return -1;
+		}
+		MemoryBlock newBlock = new MemoryBlock(current.block.baseAddress, length);
+		if(current.block.length == length) {
+			freeList.remove(current);
+		}
+		else {
+			current.block.baseAddress += length;
+			current.block.length -= length;
+		}
+		allocatedList.addLast(newBlock);
+		return newBlock.baseAddress;
 	}
-
 
 	/**
 	 * Frees the memory block whose base address equals the given address.
@@ -95,19 +86,19 @@ public class MemorySpace {
 	 *            the starting address of the block to freeList
 	 */
 	public void free(int address) {
-		if (allocatedList.getSize() == 0) {
-			return;
-		}
-	
 		Node current = allocatedList.getFirst();
-		
-		while (current != null) {
-			if (current.block.getBaseAddress() == address) {
-				allocatedList.remove(current);
-				freeList.addLast(current.block);
-				return;
+		if(allocatedList.getSize() == 0){
+				throw new IllegalArgumentException(
+						"index must be between 0 and size");
 			}
-			current = current.next;
+		else{
+			while(current.block.baseAddress != address && current != allocatedList.getLast()) {
+				current = current.next;
+			}
+			if (current.block.baseAddress == address) {
+				allocatedList.remove(current.block);
+			freeList.addLast(current.block);
+			}
 		}
 	}
 	
@@ -125,19 +116,21 @@ public class MemorySpace {
 	 * In this implementation Malloc does not call defrag.
 	 */
 	public void defrag() {
-		Node current = freeList.getFirst();
-		
-		while (current != null && current.next != null) {
-			MemoryBlock block1 = current.block;
-			MemoryBlock block2 = current.next.block;
+		for (int i = 0; i < freeList.getSize(); i++) {
+			MemoryBlock currentBlock = freeList.getBlock(i);
+			int endAddress = currentBlock.baseAddress + currentBlock.length;
 	
-			if (block1.getBaseAddress() + block1.getLength() == block2.getBaseAddress()) {
-				block1.setLength(block1.getLength() + block2.getLength());
-				freeList.remove(current.next);
-				continue;
+			Node iterator = freeList.getFirst(); 
+			while (iterator != null) {
+				MemoryBlock nextBlock = iterator.block;
+				if (nextBlock.baseAddress == endAddress) {
+					currentBlock.length += nextBlock.length;
+					freeList.remove(iterator); 
+					defrag();
+					break;
+				}
+				iterator = iterator.next;
 			}
-			
-			current = current.next;
 		}
 	}
 }
