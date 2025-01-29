@@ -169,17 +169,14 @@ public class LinkedList {
 	 */
 	public MemoryBlock getBlock(int index) {
 		if (index < 0 || index >= size) {
-			throw new IllegalArgumentException(
-				"index must be between 0 and size - 1"
-			);
+			throw new IllegalArgumentException("index must be between 0 and size");
 		}
-		Node current=first;
-		for (int i=0; i<index-1;i++)
-		{
-			current=current.next;
+		Node current = first;
+		for (int i = 0; i < index; i++) { 
+			current = current.next;
 		}
 		return current.block;
-	}	
+	}
 
 	/**
 	 * Gets the index of the node pointing to the given memory block.
@@ -220,8 +217,11 @@ public class LinkedList {
 			return;
 		}
 		Node prev=first;
-		while (prev.next!=null && prev.next!=node) {
-			prev=prev.next;
+		while (prev.next != null) {
+			if (prev.next == node) {
+				break;
+			}
+			prev = prev.next;
 		}
 		if (prev.next==null)
 		{
@@ -258,9 +258,8 @@ public class LinkedList {
 	 */
 	public void remove(MemoryBlock block) {
 		int index=indexOf(block);
-		if(index==-1)
-		{
-			throw new IllegalArgumentException("Memory block not found in list.");
+		if (index == -1) {
+			throw new IllegalArgumentException("index must be between 0 and size");
 		}
 		remove(index);
 	}	

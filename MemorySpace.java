@@ -67,8 +67,7 @@ public class MemorySpace {
 				int baseAddress = block.getBaseAddress(); 
 	
 				
-				MemoryBlock allocatedBlock = new MemoryBlock(baseAddress, length);
-				allocatedList.addLast(allocatedBlock);
+				allocatedList.addLast(new MemoryBlock(baseAddress, length));
 	
 			
 				if (block.getLength() > length) {
@@ -97,19 +96,20 @@ public class MemorySpace {
 	 *            the starting address of the block to freeList
 	 */
 	public void free(int address) {
-		Node current = allocatedList.getFirst();
-	
-		while (current != null) {
-			MemoryBlock block = current.block;
-	
-			if (block.getBaseAddress() == address) {
-				allocatedList.remove(current);
-				freeList.addLast(block);
-				return;
-			}
-	
-			current = current.next;
-		}
+		boolean found = false;
+Node current = allocatedList.getFirst();
+while (current != null) {
+    if (current.block.getBaseAddress() == address) {
+        allocatedList.remove(current);
+        freeList.addLast(current.block);
+        found = true;
+        break;
+    }
+    current = current.next;
+	}
+	if (!found) {
+    throw new IllegalArgumentException("Invalid address to free.");
+	}
 	}
 	
 	/**
@@ -129,17 +129,17 @@ public class MemorySpace {
 		if (freeList.getSize() < 2) return;
 	
 		Node current = freeList.getFirst();
-	
 		while (current != null && current.next != null) {
-			MemoryBlock block1 = current.block;
-			MemoryBlock block2 = current.next.block;
-	
-			if (block1.getBaseAddress() + block1.getLength() == block2.getBaseAddress()) {
-				block1.setLength(block1.getLength() + block2.getLength());
-				freeList.remove(current.next);
-			} else {
-				current = current.next;
-			}
-		}
+   		MemoryBlock block1 = current.block;
+    	MemoryBlock block2 = current.next.block;
+
+    	if (block1.getBaseAddress() + block1.getLength() == block2.getBaseAddress()) {
+        	block1.setLength(block1.getLength() + block2.getLength());
+        	freeList.remove(current.next);
+        	continue; 
+    }
+    	current = current.next;
+	}	
+		
 	}
 }
